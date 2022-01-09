@@ -23,8 +23,15 @@ contract KittyInterface {
 contract ZombieFeeding is ZombieFactory {
 
   // クリプトキティーズのアドレス
-  address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
-  KittyInterface kittyContract = KittyInterface(ckAddress);
+  KittyInterface kittyContract;
+
+  /***********************
+   * クリプトキティーズsetter関数
+   * _address   : 捕食者情報
+   ***********************/
+  function setKittyContractAddress(address _address) external onlyOwner{
+    kittyContract = KittyInterface(_address);
+  }
 
   /***********************
    * 捕食関数
@@ -37,7 +44,7 @@ contract ZombieFeeding is ZombieFactory {
     // msg.senderはグローバル変数で関数を呼び出したユーザー
     // またはスマートコントラクトのaddressを参照できる
     require(msg.sender == zombieToOwner[_zombieId]);
-    
+
     Zombie storage myZombie = zombies[_zombieId];
     _targetDna = _targetDna % dnaModulus;
     uint newDna = (myZombie.dna + _targetDna) / 2;
