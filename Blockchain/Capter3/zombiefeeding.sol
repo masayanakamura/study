@@ -23,8 +23,31 @@ contract KittyInterface {
 contract ZombieFeeding is ZombieFactory {
 
   // クリプトキティーズのアドレス
-  address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
-  KittyInterface kittyContract = KittyInterface(ckAddress);
+  KittyInterface kittyContract;
+
+  /***********************
+   * クリプトキティーズsetter関数
+   * _address   : 捕食者情報
+   ***********************/
+  function setKittyContractAddress(address _address) external onlyOwner{
+    kittyContract = KittyInterface(_address);
+  }
+
+  /***********************
+   * クールダウン関数
+   * _zombie   : ゾンビポインタ
+   ***********************/
+  function _triggerCooldown(Zombie storage _zombie) internal {
+      _zombie.readyTime = uint32(now + cooldownTime);
+  }
+
+  /***********************
+   * ゾンビ待機状態関数
+   * _zombie   : ゾンビポインタ
+   ***********************/
+  function _isReady(Zombie storage _zombie) internal view returns (bool) {
+      return (_zombie.readyTime <= now);
+  }
 
   /***********************
    * 捕食関数
@@ -32,19 +55,23 @@ contract ZombieFeeding is ZombieFactory {
    * _targetDna  : 獲物情報
    * _species    : 特徴
    ***********************/
-  function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) public {
+  function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) internal {
     // 呼び出し元が自分のゾンビIDと一致するか判定する
     // msg.senderはグローバル変数で関数を呼び出したユーザー
     // またはスマートコントラクトのaddressを参照できる
     require(msg.sender == zombieToOwner[_zombieId]);
-    
+
     Zombie storage myZombie = zombies[_zombieId];
+    // ゾンビ状態チェック
+    require(_isReady(myZombie));
+
     _targetDna = _targetDna % dnaModulus;
     uint newDna = (myZombie.dna + _targetDna) / 2;
     if(keccak256(_species)==keccak256("kitty")){
       newDna = newDna - newDna % 100 + 99;
     }
     _createZombie("NoName", newDna);
+    _triggerCooldown(myZombie);
   }
 
   function feedOnKitty(uint _zombieId, uint _kittyId) public {
