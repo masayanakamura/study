@@ -17,6 +17,14 @@ contract ZombieHelper is ZombieFeeding {
     _;
   }
 
+  function withdraw() external onlyOwner {
+    owner.transfer(this.balance);
+  }
+
+  function setLevelUpFee(uint _fee) external onlyOwner {
+    levelUpFee = _fee;
+  }
+
   /***********************
    * etherを支払いレベルアップ関数
    * _zombieId : 捕食者情報
@@ -31,8 +39,7 @@ contract ZombieHelper is ZombieFeeding {
    * _zombieId   : 捕食者情報
    * _newName    : 変更名
    ***********************/
-  function changeName(uint _zombieId, string _newName) external aboveLevel(2,_zombieId) {
-      require (msg.sender == zombieToOwner[_zombieId]);
+  function changeName(uint _zombieId, string _newName) external aboveLevel(2,_zombieId) ownerOf(_zombieId){
       zombies[_zombieId].name = _newName;
   }
 
@@ -41,8 +48,7 @@ contract ZombieHelper is ZombieFeeding {
    * _zombieId   : 捕食者情報
    * _newDna     : 変更DNA
    ***********************/
-  function changeDna(uint _zombieId, uint _newDna) external aboveLevel(20,_zombieId) {
-      require (msg.sender == zombieToOwner[_zombieId]);
+  function changeDna(uint _zombieId, uint _newDna) external aboveLevel(20,_zombieId) ownerOf(_zombieId){
       zombies[_zombieId].dna = _newDna;
   }
 
