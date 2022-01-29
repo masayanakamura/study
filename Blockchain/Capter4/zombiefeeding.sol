@@ -25,6 +25,14 @@ contract ZombieFeeding is ZombieFactory {
   // クリプトキティーズのアドレス
   KittyInterface kittyContract;
 
+  modifier ownerOf(uint _zombieId) {
+    // 呼び出し元が自分のゾンビIDと一致するか判定する
+    // msg.senderはグローバル変数で関数を呼び出したユーザー
+    // またはスマートコントラクトのaddressを参照できる
+    require(msg.sender == zombieToOwner[_zombieId]);
+    _;
+  }
+
   /***********************
    * クリプトキティーズsetter関数
    * _address   : 捕食者情報
@@ -55,12 +63,7 @@ contract ZombieFeeding is ZombieFactory {
    * _targetDna  : 獲物情報
    * _species    : 特徴
    ***********************/
-  function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) internal {
-    // 呼び出し元が自分のゾンビIDと一致するか判定する
-    // msg.senderはグローバル変数で関数を呼び出したユーザー
-    // またはスマートコントラクトのaddressを参照できる
-    require(msg.sender == zombieToOwner[_zombieId]);
-
+  function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) internal ownerOf(_zombieId) {
     Zombie storage myZombie = zombies[_zombieId];
     // ゾンビ状態チェック
     require(_isReady(myZombie));
